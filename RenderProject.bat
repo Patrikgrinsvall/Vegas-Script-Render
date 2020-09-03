@@ -1,1 +1,1 @@
-"e:\Program Files\vegas\vegas170.exe" -SCRIPT:"%~dp0\Render.cs"  -SCRIPTARGS:"test"
+"e:\Program Files\vegas\vegas170.exe" "E:\documents\video\liberplay\top5_try3vegas\top5.veg" -SCRIPT:"%~dp0\ScriptRender\EntryPoint.cs"

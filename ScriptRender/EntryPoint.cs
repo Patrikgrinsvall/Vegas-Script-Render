@@ -9,54 +9,82 @@ using System.Windows.Forms;
 using System.Xml;
 
 using ScriptPortal.Vegas;
+using System.Runtime.InteropServices;
 
 public class EntryPoint
 {
     ScriptPortal.Vegas.Vegas myVegas = null;
+    String toalLength = null;
+    String projectPath = null;
+    String outputFilename = null;
+    RenderTemplate renderTemplate = null;
+    String dbgmsg = null;
 
-    public void FromVegas(Vegas vegas, String scriptFile, XmlDocument scriptSettings, ScriptArgs scriptArgs)
+    public void FromVegas(Vegas vegas)
     {
         myVegas = vegas;
+        if (myVegas.Project.Length.ToMilliseconds() == 0)
+        {
+            MessageBox.Show("Project not loaded");
+            throw new ApplicationException("Project not loaded");
+        }
 
-        StringBuilder dbgout = new StringBuilder("Info");
-        //Timecode renderStart = Timecode;
-        String totalLength = myVegas.Project.Length.ToString();
+        GetRenderTemplate("MAGIX AVC/AAC MP4");
+        CreateOutputFilename();
+        showDebug();
+        RenderProject();
+    }
 
-        String projectPath = myVegas.Project.FilePath;
-        String dir = Path.GetDirectoryName(projectPath);
-        String fileName = Path.GetFileNameWithoutExtension(projectPath);
-        //String templateName = "Blu - ray 1920x1080 - 24p, 25Mbps video stream";
-        Renderer render = myVegas.Renderers.FindByName("MAGIX AVC/AAC MP4");
-        String dd = render.Name;
+    /**
+     * Generates output filename from project and output filetype
+     * */
+    public void CreateOutputFilename()
+    {
+        this.projectPath = this.myVegas.Project.FilePath;
+        String dir = Path.GetDirectoryName(this.projectPath);
+        String fileName = Path.GetFileNameWithoutExtension(this.projectPath);
+
+        if (this.renderTemplate == null) throw new ApplicationException("Didnt have a rendertemplate to create filename from");
+        String ext = Path.GetExtension(this.renderTemplate.FileExtensions[0]);
+        fileName += ext;
+        this.outputFilename = fileName;
+    }
+
+    /**
+     * Get render template from project
+     * */
+    public bool GetRenderTemplate(String rendererName)
+    {
+        Renderer render = myVegas.Renderers.FindByName(rendererName);
         render.Templates.Refresh();
         RenderTemplate[] tmpRenderTemplate = render.Templates.FindProjectMatches(myVegas.Project);
-        String ext = Path.GetExtension(tmpRenderTemplate[0].FileExtensions[0]);
-        fileName += ext;
+        this.renderTemplate = tmpRenderTemplate[0];
 
-        if (!tmpRenderTemplate[0].IsValid())
-            throw new ApplicationException("Invalid template?");
-
-        foreach (String s in scriptArgs)
+        if (!renderTemplate.IsValid())
         {
-            dbgout.Append("arg: " + s + "\n");
+            throw new ApplicationException("Project didnt have a valid render template");
         }
-        dbgout.Append("\n projectpath:");
-        dbgout.Append(projectPath);
-        dbgout.Append("\n dir:");
-        dbgout.Append(projectPath);
-        dbgout.Append("\n length:");
-        dbgout.Append(totalLength);
-        dbgout.Append("\n Template description");
-        dbgout.Append(tmpRenderTemplate[0].Description);
-        dbgout.Append("\n output filename:");
-        dbgout.Append(fileName);
+        return true;
+    }
+    /**
+     * Now Render the project
+     * */
+    public void RenderProject()
+    {
 
-        MessageBox.Show(dbgout.ToString());
-        //fileName += fileextension;
-        //dbgout.Append(fileName);
-        //MessageBox.Show(dbgout.ToString());
-        /*
-        RenderStatus status = myVegas.Project.Render(projectPath+fileName, tmpRenderTemplate[0]);
+        String totalLength = myVegas.Project.Length.ToString();
+        dbg("\n projectpath:");
+        dbg(projectPath);
+        dbg("\n dir:");
+        dbg(projectPath);
+        dbg("\n length:");
+        dbg(totalLength);
+        dbg("\n Template description");
+        dbg(this.renderTemplate.Description);
+        dbg("\n output filename:");
+        dbg(this.outputFilename);
+
+        RenderStatus status = myVegas.Project.Render(projectPath + outputFilename, renderTemplate);
         switch (status)
         {
             case RenderStatus.Complete:
@@ -69,20 +97,25 @@ public class EntryPoint
             default:
                 StringBuilder msg = new StringBuilder("Render failed:\n");
                 msg.Append("\n    file name: ");
-                msg.Append(fileName);
+                msg.Append(outputFilename);
                 msg.Append("\n    Template: ");
-                msg.Append(tmpRenderTemplate[0].Name);
+                msg.Append(renderTemplate.Name);
                 throw new ApplicationException(msg.ToString());
         }
-        */
-        //String filename = Path.Combine(dir,FixFileName(fileName),".", FixFileName(template.Extension));
-        //args.OutputFile = filename;
-
-
     }
 
+    public void dbg(String message)
+    {
+        this.dbgmsg += message + "\n";
+    }
 
-    String FixFileName(String name)
+    public void showDebug()
+    {
+        MessageBox.Show("in gen");
+        MessageBox.Show(this.dbgmsg);
+    }
+
+    public String FixFileName(String name)
     {
         const Char replacementChar = '-';
         foreach (char badChar in Path.GetInvalidFileNameChars())
@@ -92,7 +125,7 @@ public class EntryPoint
         return name;
     }
 
-    void ValidateFilePath(String filePath)
+    public void ValidateFilePath(String filePath)
     {
         if (filePath.Length > 260)
             throw new ApplicationException("File name too long: " + filePath);
@@ -104,5 +137,4 @@ public class EntryPoint
             }
         }
     }
-
 }
