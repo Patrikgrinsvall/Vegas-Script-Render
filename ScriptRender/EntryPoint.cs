@@ -31,7 +31,6 @@ public class EntryPoint
 
         GetRenderTemplate("MAGIX AVC/AAC MP4");
         CreateOutputFilename();
-        showDebug();
         RenderProject();
         myVegas.Exit();
     }
