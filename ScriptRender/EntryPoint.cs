@@ -33,6 +33,7 @@ public class EntryPoint
         CreateOutputFilename();
         showDebug();
         RenderProject();
+        myVegas.Exit();
     }
 
     /**
@@ -106,12 +107,11 @@ public class EntryPoint
 
     public void dbg(String message)
     {
-        this.dbgmsg += message + "\n";
+        this.dbgmsg = this.dbgmsg  + message + "\n";
     }
 
     public void showDebug()
     {
-        MessageBox.Show("in gen");
         MessageBox.Show(this.dbgmsg);
     }
 
