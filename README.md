@@ -10,10 +10,10 @@ There will also be support for modifying the template, changing texts or clips o
 
 ## How to use
 
-Change the path in the Render.bat to your vegas path. Then run the bat file with project file as the parameter.
+Change the path in the Render.bat to your vegas path and change the path to the project as the second argument. Then run the bat file with project file as the parameter.
   
   ```
-  c:\Program Files\vegas\vegas170.exe -SCRIPT:"%~dp0\Render.cs" -SCRIPTARGS:"config.txt"
+  c:\Program Files\vegas\vegas170.exe "c:\user\documents\myproject.veg" -SCRIPT:"%~dp0\ScriptRender\EntryPoint.cs"
   ```
   
   
